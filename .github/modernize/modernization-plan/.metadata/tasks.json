@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "transform",
+      "id": "001-transform-externalize-configuration-and-secrets",
+      "description": "Externalize hardcoded sensitive data and connection configuration to Azure-native configuration services. Addresses issues: Hardcoded sensitive data detected, Connection strings without configuration builders detected.",
+      "reason": "Assessment findings show sensitive values and connection strings are currently defined in source/configuration files, which is not cloud-ready.",
+      "requirements": "Migrate hardcoded sensitive values from code/config into Azure Key Vault and move non-secret runtime configuration to centralized Azure configuration management. Use Managed Identity for service authentication and preserve existing runtime behavior while reading values from externalized sources.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "skills": [
+        {
+          "name": "migration-azure-keyvault-secret",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-managed-identity",
+          "location": "builtin"
+        }
+      ]
+    },
+    {
+      "type": "security",
+      "id": "002-security-cve-remediation",
+      "description": "Scan dependencies for CVEs and remediate discovered vulnerabilities before deployment.",
+      "reason": "Security remediation is required in every modernization plan to ensure dependencies are not left with known vulnerabilities.",
+      "requirements": "Upgrade vulnerable dependencies to patched versions. If remediation needs major-version upgrades, document impacted packages and breaking-change risk. Verify the project builds and tests pass after remediation.",
+      "dependencies": [
+        "001-transform-externalize-configuration-and-secrets"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan",
+    "projectName": "ZavaQueueBridge",
+    "language": "dotnet",
+    "createdAt": "2026-05-29T00:38:05.585Z",
+    "version": "1.0"
+  }
+}
