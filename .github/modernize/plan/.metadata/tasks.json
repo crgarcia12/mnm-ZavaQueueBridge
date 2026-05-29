@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generated for ZavaQueueBridge Azure modernization.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-dotnet-to-net10",
+      "description": "Upgrade the application to the latest .NET LTS framework.",
+      "reason": "The project runs on legacy .NET Framework and the request explicitly requires modernization to the latest framework.",
+      "requirements": "Upgrade the project from .NET Framework 4.8 to .NET 10 and convert to SDK-style project format while preserving current file processing behavior.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-rabbitmq-to-azure-service-bus",
+      "description": "Modernize queue publishing from RabbitMQ to Azure Service Bus.",
+      "reason": "Cloud-native service modernization requires replacing broker dependencies with Azure-native messaging.",
+      "requirements": "Migrate RabbitMQ publish flow to Azure Service Bus and keep message payload/routing semantics aligned with current processing expectations using Managed Identity authentication.",
+      "dependencies": [
+        "001-upgrade-dotnet-to-net10"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-servicebus",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-local-filedrop-to-azure-storage-mount",
+      "description": "Modernize local file ingestion to Azure mounted storage.",
+      "reason": "The workload currently depends on local file paths and should adopt cloud-native storage integration.",
+      "requirements": "Replace hard-coded local filedrop assumptions with Azure mounted storage paths while preserving existing polling and file lifecycle behavior, using Managed Identity where applicable.",
+      "dependencies": [
+        "001-upgrade-dotnet-to-net10"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-storage-mount",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "004-security-cve-remediation",
+      "description": "Scan and remediate dependency CVEs before deployment.",
+      "reason": "Security remediation is mandatory for every modernization plan.",
+      "requirements": "Scan all project dependencies for known CVEs and upgrade vulnerable dependencies to minimum patched versions; document major-version risks and verify build and tests after remediation.",
+      "dependencies": [
+        "002-transform-rabbitmq-to-azure-service-bus",
+        "003-transform-local-filedrop-to-azure-storage-mount"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "deployment",
+      "id": "005-deploy-to-azure-container-apps",
+      "description": "Deploy the modernized application to Azure.",
+      "reason": "The request explicitly requires deploying the modernized application to Azure.",
+      "requirements": "Containerize and deploy the upgraded and transformed application to Azure Container Apps with managed identity-based service access and production-ready configuration.",
+      "dependencies": [
+        "004-security-cve-remediation"
+      ],
+      "skills": [
+        {
+          "name": "azcli-containerapp-deploy",
+          "location": "builtin"
+        }
+      ],
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "create new service",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "plan",
+    "projectName": "ZavaQueueBridge",
+    "language": "dotnet",
+    "createdAt": "2026-05-29T08:10:15Z",
+    "version": "1.0"
+  }
+}
